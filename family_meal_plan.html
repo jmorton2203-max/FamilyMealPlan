@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="en">
+head>
+  <meta charset="UTF-8" />
+  <title>4-Week Family Meal Plan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --bg-card: #ffffff;
+      --primary: #2563eb;
+      --primary-light: #dbeafe;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --radius-lg: 18px;
+      --radius-md: 10px;
+      --shadow-soft: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .week-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .week-button {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      padding: 6px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      transition: all 0.15s ease;
+    }
+
+    .week-button span.badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .week-button.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.5fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    .card small {
+      color: var(--muted);
+    }
+
+    .meal-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .meal-table th,
+    .meal-table td {
+      padding: 6px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .meal-table thead th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 1;
+    }
+
+    .day-cell {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .meal-button {
+      width: 100%;
+      text-align: left;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      line-height: 1.3;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meal-button span.label {
+      flex: 1;
+    }
+
+    .meal-button span.tag {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+      white-space: nowrap;
+    }
+
+    .meal-button:hover {
+      background: #eff6ff;
+      border-color: var(--primary-light);
+    }
+
+    .meal-button.selected {
+      background: #dbeafe;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+    }
+
+    .meal-button.meal-type-B { border-left: 3px solid #22c55e; }
+    .meal-button.meal-type-L { border-left: 3px solid #0ea5e9; }
+    .meal-button.meal-type-PL { border-left: 3px solid #f97316; }
+    .meal-button.meal-type-D { border-left: 3px solid #6366f1; }
+
+    .planner-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .planner-header small {
+      color: var(--muted);
+    }
+
+    .recipe-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .recipe-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.7rem;
+    }
+
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .pill.secondary {
+      background: #ecfdf5;
+      color: #15803d;
+    }
+
+    .pill.muted {
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .recipe-section-title {
+      margin: 10px 0 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .recipe-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 0.8rem;
+      color: #374151;
+    }
+
+    .recipe-list li {
+      margin-bottom: 2px;
+    }
+
+    .recipe-notes {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .muted-text {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: #f9fafb;
+      border: 1px dashed var(--border);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* View toggle (Recipe / Shopping) */
+    .view-toggle {
+      display: inline-flex;
+      border-radius: 999px;
+      background: #f3f4f6;
+      padding: 4px;
+      margin-bottom: 8px;
+      gap: 4px;
+    }
+
+    .view-button {
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      background: transparent;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .view-button.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    /* Shopping list styling */
+    .shopping-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .shopping-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .shopping-toggle {
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .range-button {
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .range-button.active {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .shopping-category {
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .shopping-category-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+      color: #4b5563;
+    }
+
+    .shopping-list {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+      font-size: 0.8rem;
+    }
+
+    .shopping-list li {
+      margin-bottom: 2px;
+    }
+
+    .shopping-list label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .shopping-list input[type="checkbox"] {
+      width: 13px;
+      height: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>4-Week Family Meal Plan</h1>
+      <p>Click a week, then tap any meal to view recipe details, or switch to the shopping list view.</p>
+    </header>
+
+    <div class="week-selector" id="week-buttons"></div>
+
+    <div class="layout">
+      <!-- Planner -->
+      <section class="card">
+        <div class="planner-header">
+          <h2 id="planner-title">Week 1</h2>
+          <small id="planner-subtitle"></small>
+        </div>
+        <div style="max-height: 480px; overflow: auto; border-radius: 12px;">
+          <table class="meal-table">
+            <thead>
+              <tr>
+                <th style="width: 80px;">Day</th>
+                <th>Breakfast</th>
+                <th>Lunch</th>
+                <th>Packed Lunch (Child)</th>
+                <th>Dinner</th>
+              </tr>
+            </thead>
+            <tbody id="meal-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Recipe / Shopping panel -->
+      <section class="card">
+        <div class="recipe-header">
+          <p class="recipe-title" id="recipe-title">Select a meal to see the recipe</p>
+          <div class="pill-row" id="recipe-pills"></div>
+          <p class="muted-text" id="recipe-meal-label"></p>
+        </div>
+
+        <div class="view-toggle">
+          <button id="btn-view-recipe" class="view-button active" type="button">Recipe</button>
+          <button id="btn-view-shopping" class="view-button" type="button">Shopping list</button>
+        </div>
+
+        <!-- Recipe view -->
+        <div id="recipe-view">
+          <div id="recipe-content">
+            <div class="empty-state">
+              Tip: start with <strong>Week 1</strong> to see full, detailed recipes.
+              Weeks 2–4 use simple “assembly” instructions you can customise.
+            </div>
+          </div>
+        </div>
+
+        <!-- Shopping list view -->
+        <div id="shopping-view" style="display:none;">
+          <div class="shopping-header">
+            <div class="shopping-title" id="shopping-title">Week 1 shopping – Mon–Thu</div>
+            <div class="shopping-toggle">
+              <button id="btn-range-mon" type="button" class="range-button active" data-range="Mon-Thu">Mon–Thu</button>
+              <button id="btn-range-fri" type="button" class="range-button" data-range="Fri-Sun">Fri–Sun</button>
+            </div>
+            <p class="muted-text">
+              Staples appear first – keep them stocked in the pantry and just tick what you need this week.
+            </p>
+          </div>
+          <div id="shopping-content">
+            <!-- Shopping list will be injected here -->
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // ---- RECIPES -----------------------------------------------------------
+
+    const recipes = {
+      // WEEK 1 detailed recipes (unchanged from previous version)
+      "w1-mon-b": {
+        title: "Porridge with Banana & Peanut Butter",
+        cuisine: "British",
+        mealType: "Breakfast",
+        ingredients: [
+          "Rolled oats",
+          "Milk or fortified plant milk",
+          "Banana, sliced",
+          "Peanut butter (1 tsp per person)"
+        ],
+        method: [
+          "Heat oats with milk in a saucepan and simmer until creamy.",
+          "Slice banana.",
+          "Serve porridge topped with banana slices and a small spoon of peanut butter."
+        ],
+        notes: "Use extra milk to loosen for children; choose smooth peanut butter with no added sugar if possible."
+      },
+      "w1-mon-l": {
+        title: "Cheese & Tomato Sandwich + Carrot & Apple",
+        cuisine: "British",
+        mealType: "Lunch",
+        ingredients: [
+          "Wholemeal bread",
+          "Cheddar cheese, sliced or grated",
+          "Tomato slices",
+          "Butter or spread",
+          "Carrots, cut into sticks",
+          "Apple, sliced"
+        ],
+        method: [
+          "Spread bread lightly with butter or spread.",
+          "Layer cheese and tomato slices between bread.",
+          "Cut into halves or quarters.",
+          "Serve with carrot sticks and sliced apple (spritz apple with lemon to prevent browning if packing)."
+        ],
+        notes: "Use reduced-fat cheese if you like; for lunchbox, keep tomatoes away from bread if you want to avoid sogginess."
+      },
+      "w1-mon-pl": {
+        title: "Packed Lunch – Cheese & Tomato Sandwich Box",
+        cuisine: "British",
+        mealType: "Packed Lunch",
+        ingredients: [
+          "Small wholemeal sandwich (cheese & tomato)",
+          "Carrot sticks",
+          "Apple slices"
+        ],
+        method: [
+          "Prepare a small cheese & tomato sandwich on wholemeal bread.",
+          "Cut into small squares or fingers.",
+          "Pack with carrot sticks and apple slices in separate compartments.",
+          "Add an ice pack to keep cool if needed."
+        ],
+        notes: "Ensure fruit and veg are cut into manageable, safe sizes for your child."
+      },
+      "w1-mon-d": {
+        title: "Baked Salmon, New Potatoes & Peas",
+        cuisine: "British",
+        mealType: "Dinner",
+        ingredients: [
+          "Salmon fillets",
+          "Baby/new potatoes, halved",
+          "Frozen peas",
+          "Olive oil",
+          "Garlic, minced",
+          "Dried mixed herbs or dill",
+          "Lemon (zest & wedges)",
+          "Salt & pepper (use lightly for kids)"
+        ],
+        method: [
+          "Heat oven to 200°C (fan 180°C).",
+          "Toss halved new potatoes with olive oil, garlic, herbs, salt and pepper. Spread on a baking tray and roast for about 20 minutes.",
+          "Push potatoes to the sides and place salmon fillets in the centre. Drizzle with a little more olive oil, add lemon zest and pepper.",
+          "Return tray to oven and bake for 10–12 minutes, until salmon is just cooked through.",
+          "Meanwhile, boil or steam peas for 3–4 minutes.",
+          "Serve salmon with potatoes and peas; flake salmon for children and check for bones."
+        ],
+        notes: "You can roast extra potatoes to reuse in lunches or weekend meals."
+      },
+
+      "w1-tue-b": {
+        title: "Greek Yogurt with Berries & Oats",
+        cuisine: "General",
+        mealType: "Breakfast",
+        ingredients: [
+          "Plain Greek yogurt",
+          "Mixed berries (fresh or frozen, thawed if needed)",
+          "Rolled oats or muesli",
+          "Honey or maple syrup (optional, light drizzle)"
+        ],
+        method: [
+          "Spoon Greek yogurt into bowls.",
+          "Top with berries and a small handful of oats.",
+          "Drizzle a little honey or maple syrup if desired (avoid for under-1s)."
+        ],
+        notes: "For extra fibre, you can pre-soak oats in a little milk to soften."
+      },
+      "w1-tue-pl": {
+        title: "Chicken & Veg Quesadilla (Packed Lunch)",
+        cuisine: "Mexican",
+        mealType: "Packed Lunch",
+        ingredients: [
+          "Wholemeal tortilla",
+          "Cooked shredded chicken",
+          "Grated cheese",
+          "Finely chopped or lightly sautéed veg (pepper, courgette, sweetcorn)"
+        ],
+        method: [
+          "Place the tortilla in a dry frying pan over low heat.",
+          "Add cheese, chicken and veg on one half of the tortilla.",
+          "Fold the tortilla over and cook for 2–3 minutes on each side until golden and cheese has melted.",
+          "Cool fully before cutting into wedges and packing into the lunchbox."
+        ],
+        notes: "Avoid making it too spicy; you can add mild salsa separately if your child enjoys it."
+      },
+      "w1-tue-d": {
+        title: "Turkey Mince Chilli with Brown Rice",
+        cuisine: "Mexican",
+        mealType: "Dinner",
+        ingredients: [
+          "Turkey mince",
+          "Onion, diced",
+          "Garlic, minced",
+          "Red pepper, diced",
+          "Carrot, finely diced",
+          "Ground cumin",
+          "Smoked paprika",
+          "Mild chilli powder (to taste)",
+          "Tinned chopped tomatoes",
+          "Kidney beans, drained and rinsed",
+          "Tomato purée",
+          "Olive oil",
+          "Brown rice"
+        ],
+        method: [
+          "Cook brown rice according to packet instructions.",
+          "Heat olive oil in a large pan and soften onion, garlic, carrot and pepper for 5–7 minutes.",
+          "Add turkey mince and cook until browned, breaking it up with a spoon.",
+          "Stir in cumin, smoked paprika and mild chilli powder; cook for 1–2 minutes.",
+          "Add tinned tomatoes, tomato purée, kidney beans and a splash of water.",
+          "Simmer for 20–25 minutes, stirring occasionally, until thickened.",
+          "Serve over brown rice with optional dollop of yogurt or grated cheese."
+        ],
+        notes: "Reduce or omit chilli powder for children, and offer extra mild toppings separately for adults."
+      },
+
+      "w1-wed-b": {
+        title: "Scrambled Eggs on Wholemeal Toast",
+        cuisine: "General",
+        mealType: "Breakfast",
+        ingredients: [
+          "Eggs",
+          "Milk (splash)",
+          "Butter or oil",
+          "Wholemeal bread, toasted",
+          "Cherry tomatoes (on the side)"
+        ],
+        method: [
+          "Whisk eggs with a splash of milk.",
+          "Melt butter or heat a little oil in a non-stick pan over low–medium heat.",
+          "Pour in eggs and gently stir until just set and creamy.",
+          "Serve on wholemeal toast with cherry tomatoes on the side."
+        ],
+        notes: "Remove cherry tomato skins if your child struggles with them."
+      },
+      "w1-wed-pl": {
+        title: "Mild Chickpea & Cucumber Pittas",
+        cuisine: "Indian-inspired",
+        mealType: "Packed Lunch",
+        ingredients: [
+          "Tinned chickpeas, drained and rinsed",
+          "Plain yogurt",
+          "Lemon juice",
+          "Pinch mild curry powder",
+          "Cucumber, finely diced",
+          "Small wholemeal pittas"
+        ],
+        method: [
+          "Mash chickpeas in a bowl with yogurt, lemon juice and mild curry powder.",
+          "Stir in finely diced cucumber.",
+          "Warm pittas briefly (optional), then cut open and spoon in the chickpea mixture.",
+          "Allow to cool before placing in the lunchbox."
+        ],
+        notes: "You can swap cucumber for grated carrot if preferred."
+      },
+      "w1-wed-d": {
+        title: "Chicken & Vegetable Lentil Dal with Brown Rice",
+        cuisine: "Indian",
+        mealType: "Dinner",
+        ingredients: [
+          "Chicken breast or thigh pieces",
+          "Red lentils, rinsed",
+          "Onion, finely chopped",
+          "Garlic, minced",
+          "Fresh ginger, grated",
+          "Carrot, diced",
+          "Courgette, diced",
+          "Mild curry powder",
+          "Ground cumin",
+          "Turmeric",
+          "Low-salt stock or water",
+          "Oil (rapeseed or olive)",
+          "Brown rice"
+        ],
+        method: [
+          "Cook brown rice according to packet instructions.",
+          "Heat oil in a large pan; sauté onion, garlic and ginger for about 5 minutes.",
+          "Add chicken pieces and cook until sealed on the outside.",
+          "Stir in curry powder, cumin and turmeric; cook for 1–2 minutes.",
+          "Add red lentils, carrot, courgette and enough stock/water to cover.",
+          "Bring to a boil, then reduce to a simmer, cover and cook 20–25 minutes until lentils are soft and chicken is cooked through.",
+          "Add extra water if needed to keep a thick, stew-like texture.",
+          "Serve over brown rice; add a spoon of yogurt for children if you like."
+        ],
+        notes: "For a veggie version, omit chicken and add extra lentils or chickpeas."
+      },
+
+      "w1-thu-b": {
+        title: "Smoothie Bowl with Granola",
+        cuisine: "Pan-Asian-inspired",
+        mealType: "Breakfast",
+        ingredients: [
+          "Banana",
+          "Frozen berries",
+          "Handful of spinach",
+          "Milk or plant milk",
+          "Granola or oats"
+        ],
+        method: [
+          "Blend banana, frozen berries, spinach and enough milk to make a thick smoothie.",
+          "Pour into bowls.",
+          "Top with a small handful of granola or oats and extra fruit if desired."
+        ],
+        notes: "Use less granola and more fruit for younger children to reduce added sugar."
+      },
+      "w1-thu-pl": {
+        title: "Pan-Asian Chicken Pasta Salad (Packed Lunch)",
+        cuisine: "Pan-Asian",
+        mealType: "Packed Lunch",
+        ingredients: [
+          "Wholewheat pasta, cooked and cooled",
+          "Cooked diced chicken",
+          "Sweetcorn",
+          "Grated carrot",
+          "Peas",
+          "Reduced-salt soy sauce",
+          "Sesame oil",
+          "Lime juice"
+        ],
+        method: [
+          "Cook wholewheat pasta according to packet instructions, then drain and cool.",
+          "In a bowl, combine pasta, chicken, sweetcorn, grated carrot and peas.",
+          "In a small bowl, whisk reduced-salt soy sauce, sesame oil and lime juice.",
+          "Pour dressing over salad and toss to coat.",
+          "Pack into the lunchbox with a fork."
+        ],
+        notes: "Go easy on the soy sauce for children; you can dilute with a splash of water."
+      },
+      "w1-thu-d": {
+        title: "Teriyaki Salmon/Tofu with Veg & Wholewheat Noodles",
+        cuisine: "Pan-Asian",
+        mealType: "Dinner",
+        ingredients: [
+          "Salmon fillets or firm tofu cubes",
+          "Wholewheat noodles",
+          "Peppers, sliced",
+          "Carrot, cut into matchsticks",
+          "Broccoli florets",
+          "Spring onions or onion, sliced",
+          "Reduced-salt soy sauce",
+          "Honey or maple syrup",
+          "Rice vinegar or apple cider vinegar",
+          "Garlic, minced",
+          "Fresh ginger, grated",
+          "Oil"
+        ],
+        method: [
+          "Whisk soy sauce, honey/maple, vinegar, garlic, ginger and a splash of water to make teriyaki sauce.",
+          "If using salmon, place fillets in a baking dish and pour over half of the sauce. Bake at 200°C for 12–15 minutes until cooked through.",
+          "If using tofu, pan-fry cubes in a little oil until golden, add half of the sauce and simmer for 2–3 minutes.",
+          "Cook noodles according to the packet, drain and set aside.",
+          "Stir-fry veg in a little oil for 4–5 minutes until just tender.",
+          "Add remaining sauce and a splash of water, then toss in noodles to coat.",
+          "Serve salmon/tofu on top of the noodles and veg; cut into small pieces for children."
+        ],
+        notes: "You can omit honey for children and keep the sauce a little less sweet."
+      },
+
+      "w1-fri-b": {
+        title: "Avocado Toast with Boiled Egg",
+        cuisine: "Spanish-style breakfast",
+        mealType: "Breakfast",
+        ingredients: [
+          "Wholemeal bread, toasted",
+          "Avocado",
+          "Boiled egg, sliced",
+          "Lemon juice",
+          "Salt & pepper (very light for children)"
+        ],
+        method: [
+          "Mash avocado with a little lemon juice in a bowl.",
+          "Spread mash over toasted wholemeal bread.",
+          "Top with sliced boiled egg.",
+          "Season very lightly for adults; keep plain for children if preferred."
+        ],
+        notes: "You can serve cherry tomatoes on the side for extra veg."
+      },
+      "w1-fri-pl": {
+        title: "Mini Spanish Tortilla Wedges (Packed Lunch)",
+        cuisine: "Spanish",
+        mealType: "Packed Lunch",
+        ingredients: [
+          "Potatoes, thinly sliced",
+          "Onion, finely sliced",
+          "Eggs",
+          "Olive oil"
+        ],
+        method: [
+          "Par-boil thinly sliced potatoes for 5–7 minutes until just tender, then drain.",
+          "Sauté onions in olive oil until soft.",
+          "Add potatoes to the pan and cook for another 2–3 minutes.",
+          "Beat eggs in a bowl and season lightly.",
+          "Pour eggs over potato and onion mixture and cook on low until almost set.",
+          "Finish under a hot grill for 2–3 minutes to set the top.",
+          "Cool completely, then cut into wedges and pack for lunch."
+        ],
+        notes: "You can bake this in a muffin tin for easy single portions."
+      },
+      "w1-fri-d": {
+        title: "Spanish Baked Chicken with Peppers & Brown Rice",
+        cuisine: "Spanish",
+        mealType: "Dinner",
+        ingredients: [
+          "Chicken drumsticks or thighs",
+          "Peppers, sliced",
+          "Red onion, cut into wedges",
+          "Garlic, minced",
+          "Smoked paprika",
+          "Dried oregano",
+          "Olive oil",
+          "Brown rice",
+          "Lemon wedges"
+        ],
+        method: [
+          "Heat oven to 200°C.",
+          "Place chicken, peppers, onion and garlic in a roasting tin.",
+          "Drizzle with olive oil, sprinkle smoked paprika and oregano, and toss to coat.",
+          "Roast for 35–40 minutes, turning once, until chicken is cooked through.",
+          "Meanwhile, cook brown rice according to packet instructions.",
+          "Serve chicken and veg over brown rice with lemon wedges on the side.",
+          "Shred chicken off the bone for younger children."
+        ],
+        notes: "You can add extra vegetables like courgette or tomatoes to the tray."
+      },
+
+      "w1-sat-b": {
+        title: "Wholemeal Pancakes with Fruit & Yogurt",
+        cuisine: "General",
+        mealType: "Breakfast",
+        ingredients: [
+          "Wholemeal flour",
+          "Baking powder",
+          "Egg",
+          "Milk or plant milk",
+          "Vanilla extract (optional)",
+          "Mixed fruit",
+          "Greek yogurt"
+        ],
+        method: [
+          "Whisk wholemeal flour and baking powder in a bowl.",
+          "Add egg, milk and vanilla and whisk to a smooth batter (add more milk if too thick).",
+          "Heat a non-stick pan with a little oil or butter and cook small pancakes until bubbles form on the surface, then flip and cook until golden.",
+          "Serve with mixed fruit and a spoon of Greek yogurt."
+        ],
+        notes: "Make extra pancakes and freeze between sheets of baking paper for quick breakfasts."
+      },
+      "w1-sat-l": {
+        title: "Italian-Style Minestrone Soup + Wholemeal Bread",
+        cuisine: "Italian",
+        mealType: "Lunch",
+        ingredients: [
+          "Onion, chopped",
+          "Carrot, chopped",
+          "Celery, chopped",
+          "Courgette, chopped",
+          "Garlic, minced",
+          "Tinned chopped tomatoes",
+          "Vegetable stock",
+          "Mixed beans (e.g. cannellini or kidney)",
+          "Small pasta shapes (a handful)",
+          "Italian dried herbs",
+          "Olive oil",
+          "Wholemeal bread"
+        ],
+        method: [
+          "Heat olive oil in a large pot; sauté onion, carrot, celery and courgette for 5–7 minutes.",
+          "Add garlic and cook for 1 minute.",
+          "Stir in tinned tomatoes, stock and Italian herbs.",
+          "Add mixed beans and bring to the boil, then reduce to a simmer for 10 minutes.",
+          "Add a small handful of pasta shapes and cook until tender.",
+          "Serve with slices of wholemeal bread."
+        ],
+        notes: "You can blend part of the soup for a smoother texture if your child prefers."
+      },
+      "w1-sat-d": {
+        title: "Wholemeal Veggie Pizza (Italian)",
+        cuisine: "Italian",
+        mealType: "Dinner",
+        ingredients: [
+          "Wholemeal pizza base or dough",
+          "Tomato passata or pizza sauce",
+          "Mozzarella cheese, grated or sliced",
+          "Peppers, sliced",
+          "Mushrooms, sliced",
+          "Spinach or sweetcorn",
+          "Olives (optional)",
+          "Italian dried herbs"
+        ],
+        method: [
+          "Heat oven according to pizza base or dough instructions.",
+          "Spread a thin layer of tomato passata over the base.",
+          "Sprinkle with Italian herbs.",
+          "Top with vegetables and a modest layer of mozzarella.",
+          "Bake until the base is crisp and cheese is melted and lightly golden.",
+          "Cool slightly before slicing and serving."
+        ],
+        notes: "Let children help choose and place toppings for more engagement."
+      },
+
+      "w1-sun-d": {
+        title: "One-Pot Roast Chicken with Root Veg or Chickpea Curry",
+        cuisine: "British / Indian",
+        mealType: "Dinner",
+        ingredients: [
+          "Option 1: Chicken pieces or whole chicken, root veg, garlic, herbs, olive oil",
+          "Option 2: Onion, garlic, curry powder, cumin, chickpeas, tinned tomatoes, spinach, oil, stock"
+        ],
+        method: [
+          "Option 1 Roast: Put chicken and chopped root vegetables in a roasting tin, drizzle with olive oil, season with herbs and roast until chicken is cooked and veg are tender.",
+          "Option 2 Curry: Soften onion and garlic in oil, add curry powder and cumin, then stir in chickpeas and tinned tomatoes. Simmer, then add spinach to wilt; serve with rice.",
+          "Choose whichever version suits your time and ingredients that week."
+        ],
+        notes: "This slot is intentionally flexible; use it for leftovers or a simple favourite."
+      }
+    };
+
+    // ---- SHOPPING DATA -----------------------------------------------------
+
+    // Staples used across all weeks
+    const shoppingStaples = [
+      { category: "Dry goods & carbs", item: "Rolled oats" },
+      { category: "Dry goods & carbs", item: "Weetabix or similar cereal" },
+      { category: "Dry goods & carbs", item: "Wholemeal flour" },
+      { category: "Dry goods & carbs", item: "Baking powder" },
+      { category: "Dry goods & carbs", item: "Brown rice" },
+      { category: "Dry goods & carbs", item: "Wholewheat pasta" },
+      { category: "Dry goods & carbs", item: "Wholewheat noodles / rice noodles" },
+      { category: "Dry goods & carbs", item: "Barley (for soups – Week 4)" },
+      { category: "Dry goods & carbs", item: "Red / green lentils" },
+      { category: "Dry goods & carbs", item: "Mixed beans (kidney, black, cannellini etc.)" },
+      { category: "Dry goods & carbs", item: "Chickpeas (tinned or dried)" },
+
+      { category: "Tinned / jars", item: "Chopped tomatoes" },
+      { category: "Tinned / jars", item: "Tomato purée" },
+      { category: "Tinned / jars", item: "Tuna (in spring water or olive oil)" },
+      { category: "Tinned / jars", item: "Sweetcorn" },
+      { category: "Tinned / jars", item: "Olives" },
+
+      { category: "Oils & condiments", item: "Olive oil" },
+      { category: "Oils & condiments", item: "Neutral/rapeseed oil" },
+      { category: "Oils & condiments", item: "Vinegar (apple cider or wine)" },
+      { category: "Oils & condiments", item: "Rice vinegar" },
+      { category: "Oils & condiments", item: "Low-salt soy sauce" },
+      { category: "Oils & condiments", item: "Honey / maple syrup" },
+      { category: "Oils & condiments", item: "Mustard (optional, for dressings)" },
+
+      { category: "Herbs & spices", item: "Mixed dried herbs / Italian seasoning" },
+      { category: "Herbs & spices", item: "Oregano" },
+      { category: "Herbs & spices", item: "Basil (dried)" },
+      { category: "Herbs & spices", item: "Smoked paprika" },
+      { category: "Herbs & spices", item: "Mild chilli powder" },
+      { category: "Herbs & spices", item: "Curry powder (mild)" },
+      { category: "Herbs & spices", item: "Ground cumin" },
+      { category: "Herbs & spices", item: "Turmeric" },
+      { category: "Herbs & spices", item: "Cinnamon" },
+      { category: "Herbs & spices", item: "Black pepper" },
+      { category: "Herbs & spices", item: "Salt (use lightly for kids)" },
+
+      { category: "Other", item: "Peanut butter / other nut butter" },
+      { category: "Other", item: "Granola (low sugar)" },
+      { category: "Other", item: "Chia seeds (Week 4)" }
+    ];
+
+    // Weekly shopping data (Mon–Thu vs Fri–Sun)
+    const shoppingData = {
+      "1": {
+        "Mon-Thu": [
+          { category: "Fruit & veg", item: "Bananas" },
+          { category: "Fruit & veg", item: "Apples" },
+          { category: "Fruit & veg", item: "Mixed berries (fresh or frozen)" },
+          { category: "Fruit & veg", item: "Lemons" },
+          { category: "Fruit & veg", item: "Cherry tomatoes" },
+          { category: "Fruit & veg", item: "Large slicing tomatoes" },
+          { category: "Fruit & veg", item: "Carrots" },
+          { category: "Fruit & veg", item: "Cucumber" },
+          { category: "Fruit & veg", item: "Peppers (mixed colours)" },
+          { category: "Fruit & veg", item: "Onions" },
+          { category: "Fruit & veg", item: "Garlic" },
+          { category: "Fruit & veg", item: "Fresh ginger" },
+          { category: "Fruit & veg", item: "Broccoli" },
+          { category: "Fruit & veg", item: "Courgettes" },
+          { category: "Fruit & veg", item: "Baby/new potatoes" },
+          { category: "Fruit & veg", item: "Salad leaves or spinach" },
+          { category: "Fruit & veg", item: "Lime (for pasta salad dressing)" },
+
+          { category: "Fridge / dairy", item: "Milk / fortified plant milk" },
+          { category: "Fridge / dairy", item: "Plain Greek yogurt" },
+          { category: "Fridge / dairy", item: "Cheddar cheese" },
+          { category: "Fridge / dairy", item: "Eggs" },
+          { category: "Fridge / dairy", item: "Butter or spread" },
+
+          { category: "Meat / fish / veggie protein", item: "Salmon fillets (Mon traybake + Thu teriyaki)" },
+          { category: "Meat / fish / veggie protein", item: "Chicken breasts (quesadillas, dal, pasta salad)" },
+          { category: "Meat / fish / veggie protein", item: "Turkey mince (Tue chilli)" },
+          { category: "Meat / fish / veggie protein", item: "Firm tofu (optional – for teriyaki instead of salmon)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread" },
+          { category: "Bakery & carbs", item: "Wholemeal wraps / tortillas" },
+          { category: "Bakery & carbs", item: "Wholemeal pittas" },
+          { category: "Bakery & carbs", item: "Wholewheat pasta (for pasta salad)" },
+          { category: "Bakery & carbs", item: "Wholewheat noodles" },
+          { category: "Bakery & carbs", item: "Brown rice" },
+
+          { category: "Tins / jars", item: "Tinned chopped tomatoes" },
+          { category: "Tins / jars", item: "Kidney beans" },
+          { category: "Tins / jars", item: "Chickpeas" },
+          { category: "Tins / jars", item: "Sweetcorn" }
+        ],
+        "Fri-Sun": [
+          { category: "Fruit & veg", item: "Extra bananas / berries / fruit" },
+          { category: "Fruit & veg", item: "Oranges (or other snack fruit)" },
+          { category: "Fruit & veg", item: "Avocados (Fri breakfast, optional for weekend)" },
+          { category: "Fruit & veg", item: "Cherry tomatoes (extra)" },
+          { category: "Fruit & veg", item: "Large tomatoes (soup, pizza, snacks)" },
+          { category: "Fruit & veg", item: "Carrots (soup, roast, snacks)" },
+          { category: "Fruit & veg", item: "Cucumber (snacks, salad)" },
+          { category: "Fruit & veg", item: "Peppers (Spanish chicken + pizza)" },
+          { category: "Fruit & veg", item: "Onions (soup, traybake, curry/roast)" },
+          { category: "Fruit & veg", item: "Garlic (extra)" },
+          { category: "Fruit & veg", item: "Broccoli (optional)" },
+          { category: "Fruit & veg", item: "Root veg for roast (parsnips, carrots, potatoes, sweet potatoes)" },
+          { category: "Fruit & veg", item: "Salad leaves / spinach (top-up)" },
+          { category: "Fruit & veg", item: "Fresh herbs (coriander / parsley)" },
+
+          { category: "Fridge / dairy", item: "Milk (top-up)" },
+          { category: "Fridge / dairy", item: "Greek yogurt (top-up)" },
+          { category: "Fridge / dairy", item: "Cheddar cheese (for pizza, toppings)" },
+          { category: "Fridge / dairy", item: "Eggs (for tortilla, pancakes, baking)" },
+
+          { category: "Meat / fish / veggie protein", item: "Chicken drumsticks / thighs (Spanish traybake)" },
+          { category: "Meat / fish / veggie protein", item: "Extra chicken or whole chicken (for Sunday roast – if chosen)" },
+          { category: "Meat / fish / veggie protein", item: "Extra chickpeas (for curry or salad)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread (for toast, sandwiches)" },
+          { category: "Bakery & carbs", item: "Wholemeal flour (for pancakes, pizza dough)" },
+          { category: "Bakery & carbs", item: "Pizza bases or extra flour/yeast" },
+          { category: "Bakery & carbs", item: "Brown rice (top-up if needed)" },
+
+          { category: "Tins / jars", item: "Extra chopped tomatoes" },
+          { category: "Tins / jars", item: "Lentils (for tomato & lentil / minestrone soup)" }
+        ]
+      },
+      "2": {
+        "Mon-Thu": [
+          { category: "Fruit & veg", item: "Bananas (for breakfasts/snacks)" },
+          { category: "Fruit & veg", item: "Apples / pears" },
+          { category: "Fruit & veg", item: "Mixed berries (for parfaits)" },
+          { category: "Fruit & veg", item: "Salad leaves" },
+          { category: "Fruit & veg", item: "Cherry tomatoes" },
+          { category: "Fruit & veg", item: "Large tomatoes (for sandwiches, salsa)" },
+          { category: "Fruit & veg", item: "Carrots" },
+          { category: "Fruit & veg", item: "Celery (for cottage pie base, optional)" },
+          { category: "Fruit & veg", item: "Cucumber (sandwiches, crudités)" },
+          { category: "Fruit & veg", item: "Onions" },
+          { category: "Fruit & veg", item: "Garlic" },
+          { category: "Fruit & veg", item: "Peppers (fajitas, stir-fry)" },
+          { category: "Fruit & veg", item: "Potatoes (cottage pie topping)" },
+          { category: "Fruit & veg", item: "Cauliflower (biryani)" },
+          { category: "Fruit & veg", item: "Peas (biryani, sides)" },
+          { category: "Fruit & veg", item: "Broccoli (stir-fry)" },
+          { category: "Fruit & veg", item: "Limes (for guac, dressings)" },
+          { category: "Fruit & veg", item: "Avocados (for guacamole)" },
+
+          { category: "Fridge / dairy", item: "Milk / plant milk" },
+          { category: "Fridge / dairy", item: "Greek yogurt (breakfasts, egg mayo lighter)" },
+          { category: "Fridge / dairy", item: "Cheddar cheese (sandwiches, burritos, toppings)" },
+          { category: "Fridge / dairy", item: "Eggs (breakfasts, egg mayo PL)" },
+          { category: "Fridge / dairy", item: "Butter or spread" },
+
+          { category: "Meat / fish / veggie protein", item: "Lean beef mince (cottage pie)" },
+          { category: "Meat / fish / veggie protein", item: "Chicken breasts (fajitas, noodle salad)" },
+          { category: "Meat / fish / veggie protein", item: "Tuna (for sandwiches)" },
+          { category: "Meat / fish / veggie protein", item: "Black beans (for breakfast + burritos)" },
+          { category: "Meat / fish / veggie protein", item: "Mixed beans or chickpeas (for biryani if using)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread" },
+          { category: "Bakery & carbs", item: "Wholemeal wraps (burritos, fajitas)" },
+          { category: "Bakery & carbs", item: "Wholemeal rolls (sandwiches)" },
+          { category: "Bakery & carbs", item: "Brown rice (biryani, stir-fry)" },
+          { category: "Bakery & carbs", item: "Wholewheat noodles (Thu stir-fry)" },
+          { category: "Bakery & carbs", item: "Oats (porridge, overnight oats if used)" },
+
+          { category: "Tins / jars", item: "Tinned chopped tomatoes (cottage pie, sauces)" },
+          { category: "Tins / jars", item: "Tinned sweetcorn" },
+          { category: "Tins / jars", item: "Salsa (or ingredients to make your own)" }
+        ],
+        "Fri-Sun": [
+          { category: "Fruit & veg", item: "Strawberries or other berries (for Fri breakfast)" },
+          { category: "Fruit & veg", item: "Extra salad leaves" },
+          { category: "Fruit & veg", item: "Cherry tomatoes (for sandwiches, salad)" },
+          { category: "Fruit & veg", item: "Onions & garlic (top-up)" },
+          { category: "Fruit & veg", item: "Peppers (paella, cacciatore, pasta salad)" },
+          { category: "Fruit & veg", item: "Carrots (lentil shepherd’s pie, sides)" },
+          { category: "Fruit & veg", item: "Potatoes (lentil shepherd’s pie, wedges)" },
+          { category: "Fruit & veg", item: "Sweet potatoes (wedges, optional)" },
+          { category: "Fruit & veg", item: "Celery & extra veg (cacciatore base, soups)" },
+          { category: "Fruit & veg", item: "Lemons (dressings, fish, salad)" },
+
+          { category: "Fridge / dairy", item: "Milk (top-up)" },
+          { category: "Fridge / dairy", item: "Greek yogurt (top-up)" },
+          { category: "Fridge / dairy", item: "Cheddar cheese (sandwiches, toppings)" },
+          { category: "Fridge / dairy", item: "Ricotta (for Fri breakfast toast)" },
+          { category: "Fridge / dairy", item: "Ham (for Fri PL)" },
+          { category: "Fridge / dairy", item: "Mozzarella / feta (for Italian pasta salad, optional)" },
+
+          { category: "Meat / fish / veggie protein", item: "Seafood mix OR chicken + small amount of chorizo (for paella)" },
+          { category: "Meat / fish / veggie protein", item: "Chicken thighs/drumsticks (cacciatore traybake)" },
+          { category: "Meat / fish / veggie protein", item: "Fish fingers (if choosing fish-finger meal)" },
+          { category: "Meat / fish / veggie protein", item: "Lentils (for shepherd’s pie, if not already in pantry)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread (top-up)" },
+          { category: "Bakery & carbs", item: "Wholewheat pasta (pasta salad)" },
+          { category: "Bakery & carbs", item: "Brown rice (for paella / cacciatore side)" }
+        ]
+      },
+      "3": {
+        "Mon-Thu": [
+          { category: "Fruit & veg", item: "Bananas (for smoothies, snacks, breakfasts)" },
+          { category: "Fruit & veg", item: "Apples (for snacks)" },
+          { category: "Fruit & veg", item: "Berries (for yogurt/porridge)" },
+          { category: "Fruit & veg", item: "Oranges (for Friday but you may buy here)" },
+          { category: "Fruit & veg", item: "Salad leaves" },
+          { category: "Fruit & veg", item: "Cherry tomatoes" },
+          { category: "Fruit & veg", item: "Cucumber (sandwiches, sushi wraps)" },
+          { category: "Fruit & veg", item: "Carrots (soup, baked potatoes, pakoras)" },
+          { category: "Fruit & veg", item: "Onions" },
+          { category: "Fruit & veg", item: "Garlic" },
+          { category: "Fruit & veg", item: "Celery (for soup, optional)" },
+          { category: "Fruit & veg", item: "Peppers (stuffed peppers, stir-fry)" },
+          { category: "Fruit & veg", item: "Spinach (for stew / salads)" },
+          { category: "Fruit & veg", item: "Potatoes (baked, mash)" },
+          { category: "Fruit & veg", item: "Green beans (side for cod)" },
+          { category: "Fruit & veg", item: "Ginger (for curries, stir-fries)" },
+          { category: "Fruit & veg", item: "Lemons / limes (for dressings, fish)" },
+
+          { category: "Fridge / dairy", item: "Milk / plant milk" },
+          { category: "Fridge / dairy", item: "Greek yogurt" },
+          { category: "Fridge / dairy", item: "Cheddar cheese" },
+          { category: "Fridge / dairy", item: "Eggs (boiled eggs, pakora, muffins later)" },
+          { category: "Fridge / dairy", item: "Butter or spread" },
+
+          { category: "Meat / fish / veggie protein", item: "Cod fillets (Med baked cod + wraps)" },
+          { category: "Meat / fish / veggie protein", item: "Salmon (for sushi-style wraps)" },
+          { category: "Meat / fish / veggie protein", item: "Prawns (for stir-fry)" },
+          { category: "Meat / fish / veggie protein", item: "Chicken (for butter chicken curry)" },
+          { category: "Meat / fish / veggie protein", item: "Hummus (for PL rolls – or ingredients to make it)" },
+          { category: "Meat / fish / veggie protein", item: "Chickpeas (for stew later in the week – you may buy now)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread" },
+          { category: "Bakery & carbs", item: "Wholemeal rolls (for cheese & hummus PL)" },
+          { category: "Bakery & carbs", item: "Baguette / crusty loaf (for soup, stew)" },
+          { category: "Bakery & carbs", item: "Wholewheat spaghetti / pasta (for tomato pasta at weekend)" },
+          { category: "Bakery & carbs", item: "Rice (for chilli bowl, curry, stir-fry)" },
+          { category: "Bakery & carbs", item: "Nori sheets or tortillas (for sushi-style wraps)" },
+
+          { category: "Tins / jars", item: "Chopped tomatoes (for soup, stuffed peppers, curries, pasta)" },
+          { category: "Tins / jars", item: "Tinned beans (for chilli bowl, stuffed peppers)" }
+        ],
+        "Fri-Sun": [
+          { category: "Fruit & veg", item: "Oranges (for Fri breakfast)" },
+          { category: "Fruit & veg", item: "Extra salad / veg for snack platter (cucumber, carrot, peppers)" },
+          { category: "Fruit & veg", item: "Spinach (for chickpea & spinach stew – top-up)" },
+          { category: "Fruit & veg", item: "Potatoes (baked potatoes, traybakes)" },
+          { category: "Fruit & veg", item: "Extra onions & garlic" },
+          { category: "Fruit & veg", item: "Any favourite fruit (weekend snacks, yogurt toppings)" },
+
+          { category: "Fridge / dairy", item: "Greek yogurt (top-up)" },
+          { category: "Fridge / dairy", item: "Cheese (for baked potatoes, sandwiches)" },
+          { category: "Fridge / dairy", item: "Eggs (for mini tortilla muffins)" },
+
+          { category: "Meat / fish / veggie protein", item: "Chickpeas (if not yet bought, for Spanish stew)" },
+          { category: "Meat / fish / veggie protein", item: "Sausages or extra chickpeas (for one-pan roast if using)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread / rolls (top-up)" },
+          { category: "Bakery & carbs", item: "Baked potato toppings (beans, tuna – if not in pantry)" },
+          { category: "Bakery & carbs", item: "Pasta (if running low for tomato pasta)" }
+        ]
+      },
+      "4": {
+        "Mon-Thu": [
+          { category: "Fruit & veg", item: "Bananas" },
+          { category: "Fruit & veg", item: "Apples (for porridge, snacks)" },
+          { category: "Fruit & veg", item: "Mixed fruit / berries (for yogurt, breakfasts)" },
+          { category: "Fruit & veg", item: "Salad leaves" },
+          { category: "Fruit & veg", item: "Cherry tomatoes" },
+          { category: "Fruit & veg", item: "Large tomatoes (for toast, soups, sauces)" },
+          { category: "Fruit & veg", item: "Carrots" },
+          { category: "Fruit & veg", item: "Onions" },
+          { category: "Fruit & veg", item: "Garlic" },
+          { category: "Fruit & veg", item: "Celery (for soup, curry base)" },
+          { category: "Fruit & veg", item: "Potatoes (for sides, samosa filling)" },
+          { category: "Fruit & veg", item: "Spinach (for lentil curry, wraps)" },
+          { category: "Fruit & veg", item: "Cucumber (wraps, rice paper rolls)" },
+          { category: "Fruit & veg", item: "Fresh coriander (for curry/pho)" },
+          { category: "Fruit & veg", item: "Ginger (for pho, curry)" },
+          { category: "Fruit & veg", item: "Limes (rice paper roll dip, pho)" },
+          { category: "Fruit & veg", item: "Avocados (for toast)" },
+
+          { category: "Fridge / dairy", item: "Milk / plant milk" },
+          { category: "Fridge / dairy", item: "Greek yogurt" },
+          { category: "Fridge / dairy", item: "Cheddar cheese" },
+          { category: "Fridge / dairy", item: "Eggs" },
+          { category: "Fridge / dairy", item: "Butter or spread" },
+
+          { category: "Meat / fish / veggie protein", item: "Turkey mince (meatballs)" },
+          { category: "Meat / fish / veggie protein", item: "Chicken (for wraps, rice paper rolls, pho)" },
+          { category: "Meat / fish / veggie protein", item: "White fish fillets (for fish tacos)" },
+          { category: "Meat / fish / veggie protein", item: "Beans (for tacos)" },
+          { category: "Meat / fish / veggie protein", item: "Lentils (for red lentil curry – or check pantry)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread" },
+          { category: "Bakery & carbs", item: "Wholewheat spaghetti (for meatballs)" },
+          { category: "Bakery & carbs", item: "Wholemeal wraps (breakfast burritos, tacos)" },
+          { category: "Bakery & carbs", item: "Rice (for curry, tacos, pho)" },
+          { category: "Bakery & carbs", item: "Rice paper sheets (for rolls)" },
+
+          { category: "Tins / jars", item: "Chopped tomatoes (meatball sauce, curry)" },
+          { category: "Tins / jars", item: "Coconut milk (if you like a creamier curry – optional)" }
+        ],
+        "Fri-Sun": [
+          { category: "Fruit & veg", item: "Extra tomatoes (pan con tomate, sauces)" },
+          { category: "Fruit & veg", item: "Extra salad leaves & veg for snack platter" },
+          { category: "Fruit & veg", item: "Potatoes (for roasted potatoes with cod, traybakes)" },
+          { category: "Fruit & veg", item: "Lemons / limes (fish, dressings)" },
+          { category: "Fruit & veg", item: "Any favourite fruit (weekend breakfasts/snacks)" },
+
+          { category: "Fridge / dairy", item: "Greek yogurt (for breakfasts, dips)" },
+          { category: "Fridge / dairy", item: "Cheese (for snack platter, pasta salad PL)" },
+
+          { category: "Meat / fish / veggie protein", item: "Tuna (for tuna & sweetcorn pasta salad PL)" },
+          { category: "Meat / fish / veggie protein", item: "Cod or other white fish (for baked cod with tomato-olive sauce)" },
+          { category: "Meat / fish / veggie protein", item: "Chicken / chickpeas (for Sunday traybake, depending on choice)" },
+
+          { category: "Bakery & carbs", item: "Wholemeal bread / rolls (for toast, platters)" },
+          { category: "Bakery & carbs", item: "Pasta (for tuna pasta salad, leftovers)" },
+
+          { category: "Tins / jars", item: "Sweetcorn (pasta salad)" },
+          { category: "Tins / jars", item: "Olives (for cod sauce, snack platter)" },
+          { category: "Tins / jars", item: "Extra chopped tomatoes (sauce for cod / soup if needed)" }
+        ]
+      }
+    };
+
+    // ---- WEEKS / MEALS -----------------------------------------------------
+
+    const weeks = [
+      {
+        name: "Week 1",
+        subtitle: "British / Mexican / Indian / Pan-Asian / Spanish / Italian",
+        days: [
+          {
+            name: "Monday",
+            cuisine: "British",
+            meals: {
+              B: { label: "Porridge with banana & peanut butter", recipeId: "w1-mon-b" },
+              L: { label: "Cheese & tomato sandwich + carrot sticks + apple", recipeId: "w1-mon-l" },
+              PL: { label: "Packed lunch – cheese & tomato sandwich, carrot & apple", recipeId: "w1-mon-pl" },
+              D: { label: "Baked salmon, new potatoes & peas", recipeId: "w1-mon-d" }
+            }
+          },
+          {
+            name: "Tuesday",
+            cuisine: "Mexican",
+            meals: {
+              B: { label: "Greek yogurt with berries & oats", recipeId: "w1-tue-b" },
+              L: { label: "Leftover baked salmon over green salad", recipeId: null },
+              PL: { label: "Chicken & veg quesadilla + cucumber sticks", recipeId: "w1-tue-pl" },
+              D: { label: "Turkey mince chilli with brown rice", recipeId: "w1-tue-d" }
+            }
+          },
+          {
+            name: "Wednesday",
+            cuisine: "Indian",
+            meals: {
+              B: { label: "Scrambled eggs on wholemeal toast + cherry tomatoes", recipeId: "w1-wed-b" },
+              L: { label: "Turkey chilli wrap with salad", recipeId: null },
+              PL: { label: "Mild chickpea & cucumber mini pittas + fruit", recipeId: "w1-wed-pl" },
+              D: { label: "Chicken & vegetable lentil dal with brown rice", recipeId: "w1-wed-d" }
+            }
+          },
+          {
+            name: "Thursday",
+            cuisine: "Pan-Asian",
+            meals: {
+              B: { label: "Smoothie bowl with granola", recipeId: "w1-thu-b" },
+              L: { label: "Leftover lentil dal (soup) + side salad", recipeId: null },
+              PL: { label: "Chicken veg wholewheat pasta salad (soy–sesame dressing)", recipeId: "w1-thu-pl" },
+              D: { label: "Teriyaki salmon/tofu with stir-fried veg & noodles", recipeId: "w1-thu-d" }
+            }
+          },
+          {
+            name: "Friday",
+            cuisine: "Spanish",
+            meals: {
+              B: { label: "Wholemeal toast with mashed avocado & boiled egg slices", recipeId: "w1-fri-b" },
+              L: { label: "Leftover teriyaki noodles as salad", recipeId: null },
+              PL: { label: "Mini Spanish tortilla wedges + cherry tomatoes", recipeId: "w1-fri-pl" },
+              D: { label: "Spanish-style baked chicken with peppers & brown rice", recipeId: "w1-fri-d" }
+            }
+          },
+          {
+            name: "Saturday",
+            cuisine: "Italian",
+            meals: {
+              B: { label: "Wholemeal pancakes with fruit & Greek yogurt", recipeId: "w1-sat-b" },
+              L: { label: "Minestrone-style veg soup + wholemeal bread", recipeId: "w1-sat-l" },
+              PL: { label: "—", recipeId: null },
+              D: { label: "Wholemeal veggie pizza (Italian toppings)", recipeId: "w1-sat-d" }
+            }
+          },
+          {
+            name: "Sunday",
+            cuisine: "Mixed",
+            meals: {
+              B: { label: "Fruit salad with yogurt & seeds", recipeId: null },
+              L: { label: "Leftover pizza + salad", recipeId: null },
+              PL: { label: "—", recipeId: null },
+              D: { label: "One-pot roast or chickpea curry", recipeId: "w1-sun-d" }
+            }
+          }
+        ]
+      },
+      {
+        name: "Week 2",
+        subtitle: "British / Mexican / Indian / Pan-Asian / Spanish / Italian",
+        days: [
+          {
+            name: "Monday",
+            cuisine: "British",
+            meals: {
+              B: { label: "Weetabix with milk & sliced fruit", recipeId: null },
+              L: { label: "Tuna & sweetcorn wholemeal sandwiches + cucumber sticks", recipeId: null },
+              PL: { label: "Tuna & sweetcorn sandwich + yogurt + fruit", recipeId: null },
+              D: { label: "Cottage pie with lean beef & mixed veg", recipeId: null }
+            }
+          },
+          {
+            name: "Tuesday",
+            cuisine: "Mexican",
+            meals: {
+              B: { label: "Scrambled eggs with black beans & mild salsa on toast", recipeId: null },
+              L: { label: "Leftover cottage pie", recipeId: null },
+              PL: { label: "Bean & cheese burrito + carrot sticks", recipeId: null },
+              D: { label: "Chicken fajitas with peppers & onions, wholewheat wraps, guacamole", recipeId: null }
+            }
+          },
+          {
+            name: "Wednesday",
+            cuisine: "Indian",
+            meals: {
+              B: { label: "Porridge with chopped dates & cinnamon", recipeId: null },
+              L: { label: "Chicken fajita salad bowl (leftovers + extra veg)", recipeId: null },
+              PL: { label: "Lighter egg mayo & cucumber sandwich", recipeId: null },
+              D: { label: "Vegetable biryani with peas, carrots, cauliflower", recipeId: null }
+            }
+          },
+          {
+            name: "Thursday",
+            cuisine: "Pan-Asian",
+            meals: {
+              B: { label: "Yogurt parfait with granola & fruit", recipeId: null },
+              L: { label: "Biryani leftovers", recipeId: null },
+              PL: { label: "Cold sesame-soy noodle salad with chicken & veg", recipeId: null },
+              D: { label: "Beef & broccoli stir-fry with brown rice", recipeId: null }
+            }
+          },
+          {
+            name: "Friday",
+            cuisine: "Spanish",
+            meals: {
+              B: { label: "Toast with ricotta and sliced strawberries", recipeId: null },
+              L: { label: "Stir-fry leftovers", recipeId: null },
+              PL: { label: "Ham & cheese wholemeal sandwich + cherry tomatoes", recipeId: null },
+              D: { label: "Seafood or chicken & chorizo paella", recipeId: null }
+            }
+          },
+          {
+            name: "Saturday",
+            cuisine: "Italian",
+            meals: {
+              B: { label: "Your choice / repeat a favourite breakfast", recipeId: null },
+              L: { label: "Wholewheat pasta salad (veg + beans + light cheese)", recipeId: null },
+              PL: { label: "—", recipeId: null },
+              D: { label: "Chicken cacciatore traybake with peppers & onions", recipeId: null }
+            }
+          },
+          {
+            name: "Sunday",
+            cuisine: "Mixed",
+            meals: {
+              B: { label: "Simple cereal or toast + fruit", recipeId: null },
+              L: { label: "Leftovers or soup & bread", recipeId: null },
+              PL: { label: "—", recipeId: null },
+              D: { label: "Lentil shepherd’s pie or baked fish fingers & sweet potato wedges", recipeId: null }
+            }
+          }
+        ]
+      },
+      {
+        name: "Week 3",
+        subtitle: "British / Mexican / Indian / Pan-Asian / Spanish / Italian",
+        days: [
+          {
+            name: "Monday",
+            cuisine: "British + Italian",
+            meals: {
+              B: { label: "Boiled eggs & soldiers", recipeId: null },
+              L: { label: "Lentil & vegetable soup", recipeId: null },
+              PL: { label: "Cheese & hummus wholemeal roll + grapes", recipeId: null },
+              D: { label: "Mediterranean baked cod with tomatoes, olives & herbs, potatoes & green beans", recipeId: null }
+            }
+          },
+          {
+            name: "Tuesday",
+            cuisine: "Mexican",
+            meals: {
+              B: { label: "Overnight oats with cinnamon & apple", recipeId: null },
+              L: { label: "Cod & salad wraps (leftover cod)", recipeId: null },
+              PL: { label: "Mild chilli rice bowl (turkey or veggie)", recipeId: null },
+              D: { label: "Stuffed peppers with brown rice & beans, topped with cheese", recipeId: null }
+            }
+          },
+          {
+            name: "Wednesday",
+            cuisine: "Indian",
+            meals: {
+              B: { label: "Toast with peanut butter & banana", recipeId: null },
+              L: { label: "Stuffed pepper leftovers + salad", recipeId: null },
+              PL: { label: "Oven-baked vegetable pakoras + yogurt dip", recipeId: null },
+              D: { label: "Light butter chicken (yogurt-based) with brown rice", recipeId: null }
+            }
+          },
+          {
+            name: "Thursday",
+            cuisine: "Pan-Asian",
+            meals: {
+              B: { label: "Smoothie (banana, oats, milk, spinach)", recipeId: null },
+              L: { label: "Curry leftovers", recipeId: null },
+              PL: { label: "Sushi-style wraps with salmon, cucumber & rice", recipeId: null },
+              D: { label: "Prawn & veg stir-fry with wholewheat noodles", recipeId: null }
+            }
+          },
+          {
+            name: "Friday",
+            cuisine: "Spanish",
+            meals: {
+              B: { label: "Yogurt & granola, orange segments", recipeId: null },
+              L: { label: "Stir-fry leftovers", recipeId: null },
+              PL: { label: "Mini tortilla muffins (egg, potato, veg)", recipeId: null },
+              D: { label: "Spanish chickpea & spinach stew + wholemeal bread", recipeId: null }
+            }
+          },
+          {
+            name: "Saturday",
+            cuisine: "Mixed",
+            meals: {
+              B: { label: "Wholemeal toast + nut butter + fruit", recipeId: null },
+              L: { label: "Baked potatoes with mixed toppings", recipeId: null },
+              PL: { label: "—", recipeId: null },
+              D: { label: "Soup & sandwiches or one-pan roast veg + sausages/chickpeas", recipeId: null }
+            }
+          },
+          {
+            name: "Sunday",
+            cuisine: "Mixed",
+            meals: {
+              B: { label: "Fruit & yogurt", recipeId: null },
+              L: { label: "Leftovers / snack platter (veg, hummus, pitta, eggs, cheese, fruit)", recipeId: null },
+              PL: { label: "—", recipeId: null },
+              D: { label: "Simple tomato pasta with hidden veg or leftover stew", recipeId: null }
+            }
+          }
+        ]
+      },
+      {
+        name: "Week 4",
+        subtitle: "British / Mexican / Indian / Pan-Asian / Spanish / Italian",
+        days: [
+          {
+            name: "Monday",
+            cuisine: "British + Italian",
+            meals: {
+              B: { label: "Porridge with grated apple", recipeId: null },
+              L: { label: "Vegetable & barley soup", recipeId: null },
+              PL: { label: "Chicken salad wrap + fruit", recipeId: null },
+              D: { label: "Turkey meatballs in tomato sauce with wholewheat spaghetti", recipeId: null }
+            }
+          },
+          {
+            name: "Tuesday",
+            cuisine: "Mexican",
+            meals: {
+              B: { label: "Breakfast burrito (egg, beans, cheese, veg in wholewheat wrap)", recipeId: null },
+              L: { label: "Leftover meatballs in wraps or with salad", recipeId: null },
+              PL: { label: "Mini bean & cheese tacos", recipeId: null },
+              D: { label: "Fish tacos with baked white fish, slaw & salsa", recipeId: null }
+            }
+          },
+          {
+            name: "Wednesday",
+            cuisine: "Indian",
+            meals: {
+              B: { label: "Toast with avocado & tomato", recipeId: null },
+              L: { label: "Fish taco leftovers in a bowl", recipeId: null },
+              PL: { label: "Mild potato & pea samosa pockets (baked)", recipeId: null },
+              D: { label: "Red lentil & spinach curry with rice + cucumber raita", recipeId: null }
+            }
+          },
+          {
+            name: "Thursday",
+            cuisine: "Pan-Asian",
+            meals: {
+              B: { label: "Fruit & yogurt with chia seeds", recipeId: null },
+              L: { label: "Lentil curry leftovers", recipeId: null },
+              PL: { label: "Chicken & veg rice paper rolls with soy-yogurt dip", recipeId: null },
+              D: { label: "Chicken pho-style noodle soup (mild broth, veg, rice noodles)", recipeId: null }
+            }
+          },
+          {
+            name: "Friday",
+            cuisine: "Spanish / Italian-inspired",
+            meals: {
+              B: { label: "Wholemeal toast with olive oil & tomato (pan con tomate)", recipeId: null },
+              L: { label: "Pho leftovers", recipeId: null },
+              PL: { label: "Tuna & sweetcorn pasta salad", recipeId: null },
+              D: { label: "Baked cod with tomato-olive sauce & roasted potatoes", recipeId: null }
+            }
+          },
+          {
+            name: "Saturday",
+            cuisine: "Mixed",
+            meals: {
+              B: { label: "Pancakes or cereal + fruit", recipeId: null },
+              L: { label: "Soup & wholemeal bread or salad bowls", recipeId: null },
+              PL: { label: "—", recipeId: null },
+              D: { label: "Leftover meatballs / curry / cod (leftover night)", recipeId: null }
+            }
+          },
+          {
+            name: "Sunday",
+            cuisine: "Mixed",
+            meals: {
+              B: { label: "Fruit, yogurt, and granola", recipeId: null },
+              L: { label: "Pick-and-mix snack platter", recipeId: null },
+              PL: { label: "—", recipeId: null },
+              D: { label: "Simple traybake (chicken or chickpeas + veg) or favourite repeat", recipeId: null }
+            }
+          }
+        ]
+      }
+    ];
+
+    // ---- APP LOGIC ---------------------------------------------------------
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const weekButtonsContainer = document.getElementById("week-buttons");
+      const plannerTitle = document.getElementById("planner-title");
+      const plannerSubtitle = document.getElementById("planner-subtitle");
+      const tableBody = document.getElementById("meal-table-body");
+      const recipeTitleEl = document.getElementById("recipe-title");
+      const recipePills = document.getElementById("recipe-pills");
+      const recipeMealLabel = document.getElementById("recipe-meal-label");
+      const recipeContent = document.getElementById("recipe-content");
+
+      const recipeView = document.getElementById("recipe-view");
+      const shoppingView = document.getElementById("shopping-view");
+      const btnViewRecipe = document.getElementById("btn-view-recipe");
+      const btnViewShopping = document.getElementById("btn-view-shopping");
+
+      const shoppingTitle = document.getElementById("shopping-title");
+      const shoppingContent = document.getElementById("shopping-content");
+      const btnRangeMon = document.getElementById("btn-range-mon");
+      const btnRangeFri = document.getElementById("btn-range-fri");
+
+      let currentWeekIndex = 0;
+      let selectedCell = null;
+      let currentShopRange = "Mon-Thu";
+
+      function createWeekButtons() {
+        weeks.forEach((week, index) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "week-button" + (index === 0 ? " active" : "");
+          btn.textContent = week.name;
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = `${week.days[0].name}–${week.days[week.days.length - 1].name}`;
+          btn.appendChild(badge);
+
+          btn.addEventListener("click", () => {
+            currentWeekIndex = index;
+            document
+              .querySelectorAll(".week-button")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedCell = null;
+            renderWeek();
+            renderNoSelection();
+            renderShoppingList();
+          });
+
+          weekButtonsContainer.appendChild(btn);
+        });
+      }
+
+      function renderWeek() {
+        const week = weeks[currentWeekIndex];
+        plannerTitle.textContent = week.name;
+        plannerSubtitle.textContent = week.subtitle || "";
+        tableBody.innerHTML = "";
+
+        week.days.forEach((day, dayIndex) => {
+          const tr = document.createElement("tr");
+
+          // Day cell
+          const dayTd = document.createElement("td");
+          dayTd.className = "day-cell";
+          dayTd.textContent = day.name;
+          tr.appendChild(dayTd);
+
+          ["B", "L", "PL", "D"].forEach((mealKey) => {
+            const td = document.createElement("td");
+            const meal = day.meals[mealKey];
+
+            if (!meal || meal.label === "—") {
+              td.textContent = "—";
+            } else {
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = `meal-button meal-type-${mealKey}`;
+              btn.dataset.weekIndex = currentWeekIndex;
+              btn.dataset.dayIndex = dayIndex.toString();
+              btn.dataset.mealKey = mealKey;
+
+              const labelSpan = document.createElement("span");
+              labelSpan.className = "label";
+              labelSpan.textContent = meal.label;
+
+              const tagSpan = document.createElement("span");
+              tagSpan.className = "tag";
+              tagSpan.textContent =
+                mealKey === "B"
+                  ? "Breakfast"
+                  : mealKey === "L"
+                  ? "Lunch"
+                  : mealKey === "PL"
+                  ? "Packed"
+                  : "Dinner";
+
+              btn.appendChild(labelSpan);
+              btn.appendChild(tagSpan);
+
+              btn.addEventListener("click", () => {
+                selectMeal(currentWeekIndex, dayIndex, mealKey, btn);
+              });
+
+              td.appendChild(btn);
+            }
+
+            tr.appendChild(td);
+          });
+
+          tableBody.appendChild(tr);
+        });
+      }
+
+      function clearSelectedButtons() {
+        document.querySelectorAll(".meal-button").forEach((b) => {
+          b.classList.remove("selected");
+        });
+      }
+
+      function selectMeal(weekIndex, dayIndex, mealKey, buttonEl) {
+        clearSelectedButtons();
+        buttonEl.classList.add("selected");
+        selectedCell = { weekIndex, dayIndex, mealKey };
+
+        const week = weeks[weekIndex];
+        const day = week.days[dayIndex];
+        const meal = day.meals[mealKey];
+
+        renderRecipe(day, mealKey, meal);
+      }
+
+      function renderNoSelection() {
+        recipeTitleEl.textContent = "Select a meal to see the recipe";
+        recipePills.innerHTML = "";
+        recipeMealLabel.textContent = "";
+        recipeContent.innerHTML = `
+          <div class="empty-state">
+            Click on any meal in the planner to open ingredients and simple instructions here.
+            Week 1 has full recipes; Weeks 2–4 have quick “assembly” guidance you can expand over time.
+          </div>
+        `;
+      }
+
+      function renderRecipe(day, mealKey, meal) {
+        const recipeId = meal.recipeId;
+        const recipe = recipeId ? recipes[recipeId] : null;
+
+        const prettyMealType =
+          mealKey === "B"
+            ? "Breakfast"
+            : mealKey === "L"
+            ? "Lunch"
+            : mealKey === "PL"
+            ? "Packed Lunch"
+            : "Dinner";
+
+        recipeTitleEl.textContent = recipe ? recipe.title : meal.label;
+
+        // Pills
+        recipePills.innerHTML = "";
+        const pill1 = document.createElement("span");
+        pill1.className = "pill";
+        pill1.textContent = `${day.name} – ${prettyMealType}`;
+        recipePills.appendChild(pill1);
+
+        const pill2 = document.createElement("span");
+        pill2.className = "pill secondary";
+        pill2.textContent = day.cuisine || "Mixed";
+        recipePills.appendChild(pill2);
+
+        if (!recipeId) {
+          const pill3 = document.createElement("span");
+          pill3.className = "pill muted";
+          pill3.textContent = "Quick assembly meal";
+          recipePills.appendChild(pill3);
+        }
+
+        recipeMealLabel.textContent = meal.label;
+
+        // Content
+        if (!recipe) {
+          // Generic helper instructions
+          recipeContent.innerHTML = "";
+          const info = document.createElement("div");
+          info.className = "muted-text";
+          info.textContent =
+            "This is a simple, mostly-assembly meal. Use the guidance below as a starting point and adjust to your family's preferences.";
+          recipeContent.appendChild(info);
+
+          const ingTitle = document.createElement("div");
+          ingTitle.className = "recipe-section-title";
+          ingTitle.textContent = "How to assemble";
+          recipeContent.appendChild(ingTitle);
+
+          const list = document.createElement("ul");
+          list.className = "recipe-list";
+          list.innerHTML = `
+            <li>Gather the ingredients mentioned in the meal label (e.g. bread, fillings, fruit, veg).</li>
+            <li>Build the main component first (sandwich, wrap, salad, or bowl), keeping seasonings mild for children.</li>
+            <li>Add at least one fruit and one vegetable where possible.</li>
+            <li>Portion appropriately for adults vs. your 4-year-old; cut food into safe, manageable pieces.</li>
+          `;
+          recipeContent.appendChild(list);
+
+          const notes = document.createElement("div");
+          notes.className = "recipe-notes";
+          notes.textContent =
+            "Tip: whenever you like a particular simple meal, you can copy this card and write your own detailed ingredients and steps directly into this app's code.";
+          recipeContent.appendChild(notes);
+          return;
+        }
+
+        // Detailed recipe
+        recipeContent.innerHTML = "";
+
+        const ingTitle = document.createElement("div");
+        ingTitle.className = "recipe-section-title";
+        ingTitle.textContent = "Ingredients";
+        recipeContent.appendChild(ingTitle);
+
+        const ingList = document.createElement("ul");
+        ingList.className = "recipe-list";
+        recipe.ingredients.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          ingList.appendChild(li);
+        });
+        recipeContent.appendChild(ingList);
+
+        const mTitle = document.createElement("div");
+        mTitle.className = "recipe-section-title";
+        mTitle.textContent = "Method";
+        recipeContent.appendChild(mTitle);
+
+        const mList = document.createElement("ol");
+        mList.className = "recipe-list";
+        recipe.method.forEach((step) => {
+          const li = document.createElement("li");
+          li.textContent = step;
+          mList.appendChild(li);
+        });
+        recipeContent.appendChild(mList);
+
+        if (recipe.notes) {
+          const notes = document.createElement("div");
+          notes.className = "recipe-notes";
+          notes.textContent = recipe.notes;
+          recipeContent.appendChild(notes);
+        }
+      }
+
+      // VIEW TOGGLE
+      btnViewRecipe.addEventListener("click", () => {
+        btnViewRecipe.classList.add("active");
+        btnViewShopping.classList.remove("active");
+        recipeView.style.display = "";
+        shoppingView.style.display = "none";
+      });
+
+      btnViewShopping.addEventListener("click", () => {
+        btnViewShopping.classList.add("active");
+        btnViewRecipe.classList.remove("active");
+        recipeView.style.display = "none";
+        shoppingView.style.display = "";
+        renderShoppingList();
+      });
+
+      // Range toggle
+      function setShopRange(range) {
+        currentShopRange = range;
+        if (range === "Mon-Thu") {
+          btnRangeMon.classList.add("active");
+          btnRangeFri.classList.remove("active");
+        } else {
+          btnRangeFri.classList.add("active");
+          btnRangeMon.classList.remove("active");
+        }
+        renderShoppingList();
+      }
+
+      btnRangeMon.addEventListener("click", () => setShopRange("Mon-Thu"));
+      btnRangeFri.addEventListener("click", () => setShopRange("Fri-Sun"));
+
+      // Render shopping list for current week + range
+      function renderShoppingList() {
+        const weekNumber = currentWeekIndex + 1;
+        const weekKey = String(weekNumber);
+        const week = weeks[currentWeekIndex];
+
+        const weekShopping = shoppingData[weekKey] || {};
+        const rangeItems = weekShopping[currentShopRange] || [];
+
+        const rangeLabel = currentShopRange === "Mon-Thu" ? "Mon–Thu" : "Fri–Sun";
+        shoppingTitle.textContent = `${week.name} shopping – ${rangeLabel}`;
+
+        shoppingContent.innerHTML = "";
+
+        if (!rangeItems.length) {
+          shoppingContent.innerHTML = `
+            <div class="empty-state">
+              No specific shopping data stored for this part of the week. Use the staples above and your meal titles as a guide.
+            </div>
+          `;
+          return;
+        }
+
+        // Combine staples + week-specific
+        const grouped = {};
+
+        function addToGrouped(list) {
+          list.forEach(({ category, item }) => {
+            if (!grouped[category]) grouped[category] = [];
+            grouped[category].push(item);
+          });
+        }
+
+        addToGrouped(shoppingStaples);
+        addToGrouped(rangeItems);
+
+        const categories = Object.keys(grouped).sort();
+
+        categories.forEach((cat) => {
+          const section = document.createElement("div");
+          section.className = "shopping-category";
+
+          const title = document.createElement("div");
+          title.className = "shopping-category-title";
+          title.textContent = cat;
+          section.appendChild(title);
+
+          const ul = document.createElement("ul");
+          ul.className = "shopping-list";
+
+          grouped[cat].forEach((item) => {
+            const li = document.createElement("li");
+            const label = document.createElement("label");
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            label.appendChild(cb);
+            const span = document.createElement("span");
+            span.textContent = item;
+            label.appendChild(span);
+            li.appendChild(label);
+            ul.appendChild(li);
+          });
+
+          section.appendChild(ul);
+          shoppingContent.appendChild(section);
+        });
+      }
+
+      // Initialise
+      createWeekButtons();
+      renderWeek();
+      renderNoSelection();
+      renderShoppingList();
+    });
+  </script>
+</body>
+</html>
